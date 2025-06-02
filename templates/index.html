@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Q&A System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Legal Q&A System</h1>
+
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'AskQuestion')">Ask Question</button>
+        <button class="tablinks" onclick="openTab(event, 'UploadPDF')">Upload Company PDF</button>
+        <button class="tablinks" onclick="openTab(event, 'ChatHistory')">Chat History</button>
+    </div>
+
+    <div id="AskQuestion" class="tabcontent" style="display: block;">
+        <div class="container">
+            <label for="question">Enter your legal question:</label>
+            <textarea id="question" placeholder="Example: What are the provisions for bail under the Bharatiya Nagarik Suraksha Sanhita?"></textarea>
+
+            <div class="suggestions">
+                <div class="suggestion-chip" onclick="fillQuestion('What are my leave entitlements according to labor laws?')">Leave entitlements</div>
+                <div class="suggestion-chip" onclick="fillQuestion('What is the process for bail under the new laws?')">Bail process</div>
+                <div class="suggestion-chip" onclick="fillQuestion('What types of evidence are admissible in court?')">Evidence types</div>
+                <div class="suggestion-chip" onclick="fillQuestion('What are my rights during an arrest?')">Arrest rights</div>
+            </div>
+
+            <button id="submit">Submit Question</button>
+
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Processing your question...</p>
+            </div>
+
+            <div id="response">
+                <h3>Answer:</h3>
+                <p id="answerText"></p>
+                <div class="confidence" id="confidenceText"></div>
+                <div class="reference">
+                    <h4>Legal Reference:</h4>
+                    <p id="referenceText"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="UploadPDF" class="tabcontent">
+        <div class="container">
+            <h3>Upload Company-Specific Documents</h3>
+            <p>Upload your company policies, HR manuals, or other legal documents to get more tailored responses.</p>
+
+            <form id="uploadForm" enctype="multipart/form-data">
+                <label for="pdfFile">Select PDF File:</label>
+                <input type="file" id="pdfFile" name="pdfFile" accept=".pdf" required>
+
+                <label for="documentType">Document Type:</label>
+                <select id="documentType" name="documentType" required>
+                    <option value="">-- Select Type --</option>
+                    <option value="hr_policy">HR Policy</option>
+                    <option value="company_rules">Company Rules</option>
+                    <option value="legal_compliance">Legal Compliance Document</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <label for="documentDescription">Brief Description:</label>
+                <textarea id="documentDescription" name="documentDescription" placeholder="Describe what this document contains"></textarea>
+
+                <button type="submit" id="uploadButton">Upload Document</button>
+            </form>
+
+            <div id="uploadStatus" style="margin-top: 20px; display: none;"></div>
+
+            <div id="pdfList" class="pdf-section">
+                <h4>Uploaded Documents</h4>
+                <div id="pdfListContent">
+                    <p>No documents uploaded yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ChatHistory" class="tabcontent">
+        <div class="container">
+            <h3>Conversation History</h3>
+            <div id="chat-history">
+                <p>Your conversation history will appear here.</p>
+            </div>
+            <button id="clearHistory" style="margin-top: 10px;">Clear History</button>
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        let chatHistory = JSON.parse(localStorage.getItem('legalChatHistory')) || [];
+
+        function updateChatHistoryDisplay() {
+            const chatHistoryElement = document.getElementById('chat-history');
+
+            if (chatHistory.length === 0) {
+                chatHistoryElement.innerHTML = '<p>Your conversation history will appear here.</p>';
+                return;
+            }
+
+            chatHistoryElement.innerHTML = '';
+
+            chatHistory.forEach(message => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message-container';
+
+                const messageContent = document.createElement('div');
+                messageContent.className = message.type === 'user' ? 'user-message' : 'bot-message';
+                messageContent.textContent = message.type === 'user' ? 'You: ' + message.text : 'Bot: ' + message.text;
+
+                const timestamp = document.createElement('div');
+                timestamp.className = 'timestamp';
+                timestamp.textContent = message.timestamp;
+
+                if (message.type === 'bot' && message.confidence) {
+                    const confidence = document.createElement('div');
+                    confidence.className = 'confidence';
+                    confidence.textContent = 'Confidence: ' + message.confidence;
+                    messageDiv.appendChild(confidence);
+                }
+
+                messageDiv.appendChild(messageContent);
+                messageDiv.appendChild(timestamp);
+                chatHistoryElement.appendChild(messageDiv);
+            });
+
+            chatHistoryElement.scrollTop = chatHistoryElement.scrollHeight;
+        }
+
+        function addMessageToHistory(text, type, confidence) {
+            const now = new Date();
+            chatHistory.push({
+                text: text,
+                type: type,
+                timestamp: now.toLocaleString(),
+                confidence: confidence
+            });
+
+            if (chatHistory.length > 50) {
+                chatHistory.shift();
+            }
+
+            localStorage.setItem('legalChatHistory', JSON.stringify(chatHistory));
+            updateChatHistoryDisplay();
+        }
+
+        updateChatHistoryDisplay();
+
+        document.getElementById('clearHistory').addEventListener('click', function() {
+            chatHistory = [];
+            localStorage.removeItem('legalChatHistory');
+            updateChatHistoryDisplay();
+            alert('Chat history cleared!');
+        });
+
+        function fillQuestion(questionText) {
+            document.getElementById('question').value = questionText;
+        }
+
+        document.getElementById('submit').addEventListener('click', async function() {
+            const question = document.getElementById('question').value.trim();
+
+            if (!question) {
+                alert('Please enter a legal question');
+                return;
+            }
+
+            addMessageToHistory(question, 'user', null);
+
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('response').style.display = 'none';
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+
+                const data = await response.json();
+
+                document.getElementById('loadingIndicator').style.display = 'none';
+
+                if (data.error) {
+                    document.getElementById('answerText').textContent = data.error;
+                    document.getElementById('referenceText').textContent = '';
+                    document.getElementById('confidenceText').textContent = '';
+                    addMessageToHistory(data.error, 'bot', null);
+                } else {
+                    document.getElementById('answerText').textContent = data.answer;
+                    document.getElementById('referenceText').textContent = data.legal_reference || 'No specific reference available';
+
+                    if (data.confidence) {
+                        document.getElementById('confidenceText').textContent = `Confidence: ${(data.confidence * 100).toFixed(1)}%`;
+                    } else {
+                        document.getElementById('confidenceText').textContent = '';
+                    }
+
+                    addMessageToHistory(data.answer, 'bot', data.confidence ? (data.confidence * 100).toFixed(1) + '%' : null);
+                }
+
+                document.getElementById('response').style.display = 'block';
+            } catch (error) {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                alert('An error occurred while processing your request. Please try again later.');
+                console.error('Error:', error);
+            }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            const fileInput = document.getElementById('pdfFile');
+
+            if (!fileInput.files[0]) {
+                alert('Please select a PDF file to upload');
+                return;
+            }
+
+            formData.append('pdfFile', fileInput.files[0]);
+            formData.append('documentType', document.getElementById('documentType').value);
+            formData.append('documentDescription', document.getElementById('documentDescription').value);
+
+            const uploadStatus = document.getElementById('uploadStatus');
+            uploadStatus.style.display = 'block';
+            uploadStatus.innerHTML = '<p>Uploading document, please wait...</p>';
+
+            try {
+                const response = await fetch('/upload-pdf', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    uploadStatus.innerHTML = '<p style="color: green;">Document uploaded successfully!</p>';
+                    document.getElementById('uploadForm').reset();
+
+                    fetchPdfList();
+                } else {
+                    uploadStatus.innerHTML = `<p style="color: red;">${data.error || 'Upload failed'}</p>`;
+                }
+            } catch (error) {
+                uploadStatus.innerHTML = '<p style="color: red;">An error occurred during upload. Please try again.</p>';
+                console.error('Error:', error);
+            }
+        });
+
+        async function fetchPdfList() {
+            try {
+                const response = await fetch('/pdf-list');
+                const data = await response.json();
+
+                const pdfListContent = document.getElementById('pdfListContent');
+
+                if (data.pdfs && data.pdfs.length > 0) {
+                    let html = '<ul style="list-style-type: none; padding: 0;">';
+
+                    data.pdfs.forEach(pdf => {
+                        html += `
+                            <li style="margin-bottom: 15px; padding: 10px; background-color: #f5f5f5; border-radius: 5px;">
+                                <strong>${pdf.filename}</strong>
+                                <p>Type: ${pdf.type}</p>
+                                <p>${pdf.description || 'No description provided'}</p>
+                                <button onclick="deletePdf('${pdf.id}')" style="background-color: #e74c3c; padding: 5px 10px; font-size: 12px;">Delete</button>
+                            </li>
+                        `;
+                    });
+
+                    html += '</ul>';
+                    pdfListContent.innerHTML = html;
+                } else {
+                    pdfListContent.innerHTML = '<p>No documents uploaded yet.</p>';
+                }
+            } catch (error) {
+                console.error('Error fetching PDF list:', error);
+            }
+        }
+
+        async function deletePdf(pdfId) {
+            if (!confirm('Are you sure you want to delete this document?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/delete-pdf/${pdfId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    fetchPdfList();
+                } else {
+                    alert(data.error || 'Failed to delete document');
+                }
+            } catch (error) {
+                console.error('Error deleting PDF:', error);
+                alert('An error occurred while deleting the document');
+            }
+        }
+
+        fetchPdfList();
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            createGlowElements();
+            addTextRevealEffect();
+
+            const submitBtn = document.getElementById('submit');
+            if (submitBtn) {
+                const originalClick = submitBtn.onclick;
+                submitBtn.onclick = async function(e) {
+                    if (originalClick) await originalClick.call(this, e);
+
+                    setTimeout(() => {
+                        const answerText = document.getElementById('answerText');
+                        if (answerText && answerText.textContent) {
+                            const originalContent = answerText.textContent;
+                            answerText.textContent = '';
+
+                            const words = originalContent.split(' ');
+                            
+                            words.forEach((word, index) => {
+                                setTimeout(() => {
+                                    answerText.textContent += (index > 0 ? ' ' : '') + word;
+                                }, index * 50);
+                            });
+
+                            setTimeout(() => {
+                                let text = answerText.innerHTML;
+                                const legalTerms = ['right', 'law', 'legal', 'court', 'evidence', 'bail', 'entitled', 'act', 'code', 'section', 'punishment', 'imprisonment', 'fine', 'traffic', 'driving', 'negligence', 'death', 'accident', 'property', 'contract', 'divorce', 'arrest', 'leave', 'policy', 'rules', 'compliance', 'bharatiya'];
+                                
+                                legalTerms.forEach(term => {
+                                    const regex = new RegExp(`\\b${term}\\b`, 'gi');
+                                    text = text.replace(regex, '<span class="highlight">$&</span>');
+                                });
+                                answerText.innerHTML = text;
+                            }, words.length * 50 + 500);
+                        }
+                    }, 500);
+                };
+            }
+        });
+
+        function createGlowElements() {
+            const glowCount = 3;
+            const body = document.querySelector('body');
+
+            for (let i = 0; i < glowCount; i++) {
+                const glow = document.createElement('div');
+                glow.className = 'glow';
+
+                const size = Math.random() * 300 + 200;
+                glow.style.width = `${size}px`;
+                glow.style.height = `${size}px`;
+                glow.style.left = `${Math.random() * 100}%`;
+                glow.style.top = `${Math.random() * 100}%`;
+                glow.style.animationDelay = `${Math.random() * 5}s`;
+
+                body.appendChild(glow);
+            }
+        }
+
+        function addTextRevealEffect() {
+            const responseEl = document.getElementById('response');
+            if (responseEl) {
+                if (!responseEl.querySelector('.text-reveal-overlay')) {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'text-reveal-overlay';
+                    overlay.style.position = 'absolute';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    overlay.style.width = '100%';
+                    overlay.style.height = '100%';
+                    overlay.style.background = 'linear-gradient(90deg, transparent, var(--darker))';
+                    overlay.style.zIndex = '1';
+                    overlay.style.pointerEvents = 'none';
+                    responseEl.style.position = 'relative';
+                    responseEl.appendChild(overlay);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

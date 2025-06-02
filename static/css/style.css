@@ -1,0 +1,296 @@
+/* style.css (example additions) */
+
+body {
+    background-color: #1a1a2e; /* Dark background */
+    color: #e0e0e0; /* Light text */
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    position: relative; /* For glow elements */
+    overflow: hidden; /* To keep glows within bounds */
+}
+
+h1 {
+    text-align: center;
+    color: #8be9fd; /* A vibrant blue */
+}
+
+.container {
+    background-color: #282a36; /* Slightly lighter dark background */
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    max-width: 800px;
+    margin: 30px auto;
+    position: relative; /* For text reveal overlay */
+    z-index: 2; /* Ensure container is above glows */
+}
+
+.tab {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.tablinks {
+    background-color: #44475a;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 16px;
+    border-radius: 5px;
+    margin: 0 5px;
+}
+
+.tablinks:hover {
+    background-color: #6272a4;
+}
+
+.tablinks.active {
+    background-color: #50fa7b; /* Green for active tab */
+    color: #282a36;
+    font-weight: bold;
+}
+
+/* Question and Upload Form Styles */
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #f8f8f2;
+}
+
+textarea, input[type="file"], select {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #6272a4;
+    border-radius: 5px;
+    background-color: #44475a;
+    color: #f8f8f2;
+}
+
+button {
+    background-color: #bd93f9; /* Purple button */
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #ff79c6; /* Pink on hover */
+}
+
+/* Suggestions */
+.suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.suggestion-chip {
+    background-color: #6272a4;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.suggestion-chip:hover {
+    background-color: #8be9fd;
+    color: #282a36;
+}
+
+/* Loading Indicator */
+.loading {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #50fa7b;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Response Section */
+#response {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #44475a;
+    display: none; /* Hidden by default */
+}
+
+#answerText {
+    white-space: pre-wrap; /* Preserves formatting and line breaks */
+    line-height: 1.6;
+    font-size: 1.1em;
+    color: #f8f8f2;
+}
+
+.confidence {
+    font-size: 0.9em;
+    color: #50fa7b; /* Green for confidence */
+    margin-top: 10px;
+}
+
+.reference {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #6272a4;
+}
+
+.reference h4 {
+    color: #8be9fd;
+    margin-bottom: 5px;
+}
+
+.reference p {
+    font-size: 0.95em;
+    color: #bd93f9;
+}
+
+/* Uploaded PDF List */
+.pdf-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #44475a;
+}
+
+#pdfListContent ul {
+    list-style-type: disc; /* Use discs for clarity */
+    padding-left: 20px;
+}
+
+#pdfListContent li {
+    background-color: #383a4c;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+#pdfListContent li p {
+    margin: 5px 0;
+    color: #19cf56;
+}
+
+#pdfListContent li strong {
+    color: #ff79c6; /* Pink for filenames */
+}
+
+#pdfListContent li button {
+    background-color: #e74c3c; /* Red for delete */
+    padding: 8px 12px;
+    font-size: 0.9em;
+    border-radius: 4px;
+}
+
+#pdfListContent li button:hover {
+    background-color: #c0392b;
+}
+
+
+/* Chat History */
+#chat-history {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #6272a4;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #383a4c;
+}
+
+.message-container {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    max-width: 90%;
+}
+
+.user-message {
+    background-color: #44475a;
+    color: #f8f8f2;
+    align-self: flex-end; /* For a chat-like layout */
+    margin-left: auto;
+}
+
+.bot-message {
+    background-color: #6272a4;
+    color: white;
+    align-self: flex-start;
+}
+
+.timestamp {
+    font-size: 0.8em;
+    color: #999;
+    margin-top: 5px;
+    text-align: right;
+}
+
+/* Glow Elements */
+.glow {
+    position: absolute;
+    background: radial-gradient(circle, #8be9fd 0%, transparent 70%); /* Blue glow */
+    filter: blur(100px);
+    opacity: 0.2;
+    animation: glow-animation 10s infinite alternate;
+    z-index: 0;
+    border-radius: 50%;
+}
+
+@keyframes glow-animation {
+    0% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(20vw, 15vh) scale(1.1); }
+    50% { transform: translate(-10vw, 30vh) scale(0.9); }
+    75% { transform: translate(15vw, -20vh) scale(1.2); }
+    100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Text Reveal Overlay */
+.text-reveal-overlay {
+    background: linear-gradient(90deg, transparent, #282a36 90%); /* Darker background color */
+    animation: reveal-text 1s forwards; /* Adjust animation duration as needed */
+}
+
+/* This animation moves the gradient to reveal text */
+@keyframes reveal-text {
+    from {
+        width: 100%;
+        left: 0;
+    }
+    to {
+        width: 0%;
+        left: 100%;
+    }
+}
+
+/* Highlighted Text */
+.highlight {
+    color: #ff79c6; /* A contrasting color for highlights */
+    font-weight: bold;
+    transition: color 0.3s ease-in-out; /* Smooth transition for highlight */
+}
+
+/* Optional: Improve hover effects for buttons */
+button:active {
+    transform: translateY(1px);
+}
